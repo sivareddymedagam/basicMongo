@@ -1,0 +1,124 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Products CRUD</title>
+    <style>
+            body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }
+            input { padding: 8px; margin: 5px; border: 1px solid #ccc; border-radius: 4px; }
+            button { padding: 8px 16px; margin: 5px; border: none; border-radius: 4px; cursor: pointer; color: white; }
+            .btn-create { background: #28a745; }
+            .btn-update { background: #007bff; }
+            .btn-delete { background: #dc3545; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+            th { background: #f4f4f4; }
+    </style>
+</head>
+<body>
+
+    <h1>Products Manager</h1>
+
+    <!-- CREATE / UPDATE FORM -->
+    <h2>Add / Update Product</h2>
+    <input id="productId" type="text" placeholder="ID (for update/delete)" />
+    <br />
+    <input id="name" type="text" placeholder="Name" />
+    <input id="price" type="number" placeholder="Price" />
+    <input id="category" type="text" placeholder="Category" />
+    <input id="stock" type="number" placeholder="Stock" />
+    <br />
+    <button class="btn-create" onclick="createProduct()">Create</button>
+    <button class="btn-update" onclick="updateProduct()">Update</button>
+    <button class="btn-delete" onclick="deleteProduct()">Delete</button>
+
+    <!-- PRODUCTS TABLE -->
+    <h2>All Products</h2>
+    <button onclick="loadProducts()" style="background:#6c757d; color:white; padding:8px 16px; border:none; border-radius:4px; cursor:pointer;">
+        Refresh List
+    </button>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Category</th>
+                <th>Stock</th>
+            </tr>
+        </thead>
+        <tbody id="productList"></tbody>
+    </table>
+
+    <script>
+            const API = '/api/products';
+
+            // ✅ LOAD ALL PRODUCTS
+            async function loadProducts() {
+              const res = await fetch(API);
+              const products = await res.json();
+              const tbody = document.getElementById('productList');
+              tbody.innerHTML = '';
+              products.forEach(p => {
+                tbody.innerHTML += `
+                  <tr>
+                    <td>${p.id}</td>
+                    <td>${p.name}</td>
+                    <td>${p.price}</td>
+                    <td>${p.category}</td>
+                    <td>${p.stock}</td>
+                  </tr>`;
+              });
+            }
+
+            // ✅ CREATE PRODUCT
+            async function createProduct() {
+              const product = getFormValues();
+              await fetch(API, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(product)
+              });
+              alert('Product created!');
+              loadProducts();
+            }
+
+            // ✅ UPDATE PRODUCT
+            async function updateProduct() {
+              const id = document.getElementById('productId').value;
+              if (!id) return alert('Enter the product ID to update');
+              const product = getFormValues();
+              await fetch(`${API}/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(product)
+              });
+              alert('Product updated!');
+              loadProducts();
+            }
+
+            // ✅ DELETE PRODUCT
+            async function deleteProduct() {
+              const id = document.getElementById('productId').value;
+              if (!id) return alert('Enter the product ID to delete');
+              await fetch(`${API}/${id}`, { method: 'DELETE' });
+              alert('Product deleted!');
+              loadProducts();
+            }
+
+            // Helper — read form inputs
+            function getFormValues() {
+              return {
+                name: document.getElementById('name').value,
+                price: parseFloat(document.getElementById('price').value),
+                category: document.getElementById('category').value,
+                stock: parseInt(document.getElementById('stock').value)
+              };
+            }
+
+            // Load products on page open
+            loadProducts();
+    </script>
+
+</body>
+</html>
